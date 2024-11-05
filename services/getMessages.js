@@ -27,7 +27,7 @@ class MessagesService {
         const { sender, receiver, message, dateTime, read } = infos;
 
         try {
-            await MessagesModel.create(sender, receiver, message, dateTime, read);
+            await MessagesModel.create({sender, receiver, message, dateTime, read});
             console.log('Stored message with successfully!');
             return true;
         } catch(error) {

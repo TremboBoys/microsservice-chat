@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { connectDB } from "./infra/connect.js";
+import MessagesServices from "./services/getMessages.js";
 import getMessagesRouter from "./routes/getMessagesRouter.js";
 import "dotenv/config";
 
@@ -14,6 +15,7 @@ const io = new Server(httpServer, {
 });
 const PORT = process.env.PORT || 3333;
 connectDB();
+app.use(express.json());
 app.use('/message', getMessagesRouter);
 
 
@@ -25,10 +27,12 @@ io.on("connection", (socket) => {
     socket.on("saveUser", (nameUser) => {
         usersActive[nameUser] = socket.id;
         console.log(usersActive);
-    })
+    });
 
-    socket.on("sendMessage", (userSender, userReceiver, msg) => {
+    socket.on("sendMessage", async (userSender, userReceiver, msg) => {
         const userId = usersActive[userReceiver];
+        const dateTime = new Date();
+        await MessagesServices.storeMessage({sender: userSender, receiver: userReceiver, message: msg, dateTime, read: false});
         socket.to(userId).emit("receiveMessage", userSender, msg);
         console.log(msg);
     });
@@ -43,7 +47,7 @@ io.on("connection", (socket) => {
                 break;
             }
         }
-    })
+    });
 });
 
 httpServer.listen(PORT, () => {
