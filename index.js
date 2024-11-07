@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { connectDB } from "./infra/connect.js";
+import cors from "cors";
 import MessagesServices from "./services/getMessages.js";
 import getMessagesRouter from "./routes/getMessagesRouter.js";
 import "dotenv/config";
@@ -10,11 +11,16 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://localhost:5173'
+        origin: 'http://localhost:5173',
     }
 });
+
 const PORT = process.env.PORT || 3333;
 connectDB();
+
+app.use(cors({
+    origin: 'http://localhost:5173'
+}))
 app.use(express.json());
 app.use('/message', getMessagesRouter);
 
