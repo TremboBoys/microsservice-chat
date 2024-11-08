@@ -13,9 +13,7 @@ class MessagesService {
                     { receiver: nameUser },
                 ]
             });
-            messages.sort((a, b) => {
-                return a.dateTime - b.dateTime;
-            });
+            console.log(messages);
             return messages;
         } catch(error) {
             console.error('Error when querying the message: ', error);

@@ -36,11 +36,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("sendMessage", async (userSender, userReceiver, msg) => {
+        console.log(userSender, userReceiver, msg);
         const userId = usersActive[userReceiver];
         const dateTime = new Date();
         await MessagesServices.storeMessage({sender: userSender, receiver: userReceiver, message: msg, dateTime, read: false});
-        socket.to(userId).emit("receiveMessage", userSender, msg);
-        console.log(msg);
+        socket.to(userId).emit("receiveMessage", userSender, userReceiver, msg, dateTime, false);
     });
 
     socket.on("disconnect", () => {
