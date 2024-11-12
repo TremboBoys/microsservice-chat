@@ -33,6 +33,20 @@ class MessagesService {
             return false;
         };
     };
+
+    async updateMessage(id, infosUpdate) {
+        try {
+            const updateMessage = await MessagesModel.findByIdAndUpdate(
+                id,
+                infosUpdate,
+                { new: true }
+            );
+            return updateMessage;
+        } catch(error) {
+            console.error('Error in PATCH message: ', error);
+            return false;
+        }
+    }
 };
 
 export default new MessagesService();

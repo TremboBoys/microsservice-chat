@@ -43,6 +43,14 @@ io.on("connection", (socket) => {
         socket.to(userId).emit("receiveMessage", userSender, userReceiver, msg, dateTime, false);
     });
 
+    socket.on("notificationUpdateRead", (userReceiver, id) => {
+        const userId = usersActive[userReceiver];
+
+        if (userId !== undefined) {
+            socket.to(userId).emit("updateRead", userReceiver, id);
+        }
+    })
+
     socket.on("disconnect", () => {
         const users = Object.entries(usersActive);
 

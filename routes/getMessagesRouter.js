@@ -27,4 +27,17 @@ getMessagesRouter.post('/', async (req, res) => {
     };
 });
 
+getMessagesRouter.patch('/:idMessage', async (req, res) => {
+    const id = req.params.idMessage;
+    const update = req.body;
+
+    const updateMessage = await MessagesService.updateMessage(id, update);
+
+    if (updateMessage) {
+        res.status(200).send({updateMessage});
+    } else {
+        res.status(400).send('Error update message in MongoDB');
+    }
+})
+
 export default getMessagesRouter;
