@@ -39,8 +39,8 @@ io.on("connection", (socket) => {
         console.log(userSender, userReceiver, msg);
         const userId = usersActive[userReceiver];
         const dateTime = new Date();
-        await MessagesServices.storeMessage({sender: userSender, receiver: userReceiver, message: msg, dateTime, read: false});
-        socket.to(userId).emit("receiveMessage", userSender, userReceiver, msg, dateTime, false);
+        const newMessage = await MessagesServices.storeMessage({sender: userSender, receiver: userReceiver, message: msg, dateTime, read: false});
+        socket.to(userId).emit("receiveMessage", newMessage._id, newMessage.sender, newMessage.receiver, newMessage.message, newMessage.dateTime, newMessage.read);
     });
 
     socket.on("notificationUpdateRead", (userReceiver, id) => {
