@@ -2,6 +2,7 @@
 // import multer from "multer";
 // import { GridFsStorage } from "multer-gridfs-storage";
 import { MessagesModel } from "../infra/models.js";
+import mongoose from "mongoose";
 import "dotenv/config";
 
 class MessagesService {
@@ -13,7 +14,7 @@ class MessagesService {
                     { receiver: nameUser },
                 ]
             });
-            console.log(messages);
+            // console.log(messages);
             return messages;
         } catch(error) {
             console.error('Error when querying the message: ', error);
@@ -23,9 +24,10 @@ class MessagesService {
 
     async storeMessage(infos) {
         const { sender, receiver, message, dateTime, read } = infos;
+        const _id = new mongoose.Types.ObjectId();
 
         try {
-            const newMessage = await MessagesModel.create({sender, receiver, message, dateTime, read});
+            const newMessage = await MessagesModel.create({_id, sender, receiver, message, dateTime, read});
             console.log('Stored message with successfully!');
             return newMessage;
         } catch(error) {
@@ -44,6 +46,16 @@ class MessagesService {
             return updateMessage;
         } catch(error) {
             console.error('Error in PATCH message: ', error);
+            return false;
+        };
+    };
+
+    async deleteMessage(id) {
+        try {
+            await MessagesModel.findByIdAndDelete(id);
+            return true;
+        } catch(error) {
+            console.error('Error in DELETE message: ', error);
             return false;
         }
     }

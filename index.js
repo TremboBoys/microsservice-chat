@@ -4,7 +4,8 @@ import { Server } from "socket.io";
 import { connectDB } from "./infra/connect.js";
 import cors from "cors";
 import MessagesServices from "./services/getMessages.js";
-import getMessagesRouter from "./routes/getMessagesRouter.js";
+import UploaderService from "./services/uploadImages.js";
+import { getMessagesRouter, uploaderRouter } from "./routes/index.js";
 import "dotenv/config";
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(cors({
 }))
 app.use(express.json());
 app.use('/message', getMessagesRouter);
+app.use('/image', uploaderRouter);
 
 
 const usersActive = {};
@@ -38,18 +40,65 @@ io.on("connection", (socket) => {
     socket.on("sendMessage", async (userSender, userReceiver, msg) => {
         console.log(userSender, userReceiver, msg);
         const userId = usersActive[userReceiver];
+        const userSenderId = usersActive[userSender];
+        console.log(userSenderId);
         const dateTime = new Date();
         const newMessage = await MessagesServices.storeMessage({sender: userSender, receiver: userReceiver, message: msg, dateTime, read: false});
+
+        console.log('Começando emits');
+
+        console.log(`Emissor: ${userSender} com ID: ${userSenderId}`);
+        console.log(`Receptor: ${userReceiver} com ID: ${userId}`);
+
+
         socket.to(userId).emit("receiveMessage", newMessage._id, newMessage.sender, newMessage.receiver, newMessage.message, newMessage.dateTime, newMessage.read);
+
+        socket.emit("saveMessage", newMessage._id, newMessage.sender, newMessage.receiver, newMessage.message, newMessage.dateTime, newMessage.read);
+
+        console.log('Passou de saveMessage');
     });
 
-    socket.on("notificationUpdateRead", (userReceiver, id) => {
+    socket.on("uploadImage", async (userSender, userReceiver, file) => {
         const userId = usersActive[userReceiver];
 
-        if (userId !== undefined) {
-            socket.to(userId).emit("updateRead", userReceiver, id);
+        const image = await UploaderService.createImage(file, userSender, userReceiver);
+        console.log('Socket: ', image);
+
+        if (image !== false) {
+            socket.to(userId).emit("receiveImage", userSender, userReceiver, image);
+            socket.emit("receiveImage", userSender, userReceiver, image);
         }
+    });
+
+    socket.on("notificationDeleteMessage", async (userSender, userReceiver, idMessage,  type) => {
+        const userId = usersActive[userReceiver];
+        if (type == 'message') {
+            await MessagesServices.deleteMessage(idMessage);
+        } else {
+            const deleteImage = await UploaderService.deleteImages(idMessage);
+            console.log('Status delete: ', deleteImage);
+        }
+        socket.to(userId).emit("deleteMessage", userSender, idMessage);
     })
+
+    socket.on("typing", (userSender, userReceiver) => {
+        const userId = usersActive[userReceiver];
+        socket.to(userId).emit("typing", (userSender));
+    });
+
+    socket.on("untyping",(userSender, userReceiver) => {
+        const userId = usersActive[userReceiver];
+        socket.to(userId).emit("untyping", (userSender));
+    });
+
+    socket.on("notificationUpdateRead", (userSender, userReceiver, id) => {
+        const userId = usersActive[userReceiver];
+        console.log(userSender);
+        
+        if (userId !== undefined) {
+            socket.to(userId).emit("updateRead", userSender, id);
+        }
+    });
 
     socket.on("disconnect", () => {
         const users = Object.entries(usersActive);

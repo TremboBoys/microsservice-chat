@@ -37,7 +37,19 @@ getMessagesRouter.patch('/:idMessage', async (req, res) => {
         res.status(200).send({updateMessage});
     } else {
         res.status(400).send('Error update message in MongoDB');
-    }
-})
+    };
+});
+
+getMessagesRouter.delete('/:idMessage', async (req, res) => {
+    const idMessage = req.params.idMessage;
+
+    const deleteMessage = await MessagesService.deleteMessage(idMessage);
+
+    if (deleteMessage) {
+        res.sendStatus(200);
+    } else {
+        res.status(400).send('Error deleting message in MongoDB');
+    };
+});
 
 export default getMessagesRouter;
