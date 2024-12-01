@@ -12,7 +12,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://localhost:5173',
+        origin: ['http://localhost:5173', 'https://1cc2-2804-30c-86b-6b00-48ab-8475-541f-cb8d.ngrok-free.app/'],
     }
 });
 
